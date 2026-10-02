@@ -5,7 +5,7 @@ import {build} from 'esbuild';
 import {mkdtemp,readFile,rm} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
-import {validateBoard,renderGroups,CARD_COLORS} from '../public/shared.js';
+import {validateBoard,renderGroups,CARD_COLORS,renderBoardStyles,cardTextColor} from '../public/shared.js';
 
 test('hub authentication, persistence, safe links and concurrent edits',async t=>{
  const tmp=await mkdtemp(join(tmpdir(),'confidence-hub-test-'));
@@ -57,12 +57,26 @@ test('hub authentication, persistence, safe links and concurrent edits',async t=
    const bad=structuredClone(board);bad.groups[0].links[0].color='rose\" onclick=alert(1)';
    assert.equal((await call('/api/board','PUT',bad,true)).status,400);
   });
+  await t.test('custom background and text colours save, move and reject CSS injection',async()=>{
+   const next=structuredClone(board);const card=next.groups[0].links.shift();
+   Object.assign(card,{color:'custom',backgroundColor:'#173C42',textColor:'#FAF7F0'});next.groups[2].links.push(card);
+   next.groups[1].links[0].textColor='#102030';
+   const res=await call('/api/board','PUT',next,true);assert.equal(res.status,200);board=await res.json();
+   assert.equal(board.groups[2].links.at(-1).backgroundColor,'#173c42');assert.equal(board.groups[2].links.at(-1).textColor,'#faf7f0');
+   assert.match(renderBoardStyles(board),/--card-bg:#173c42/);assert.match(renderBoardStyles(board),/--card-ink:#faf7f0/);
+   assert.match(renderBoardStyles(board),/--card-ink:#102030/);
+   assert.equal(cardTextColor({color:'custom',backgroundColor:'#000000'}),'#ffffff');
+   assert.equal(cardTextColor({color:'custom',backgroundColor:'#ffffff'}),'#000000');
+   for(const field of ['backgroundColor','textColor'])for(const value of ['#abc','red','url(https://example.com)','</style><script>alert(1)</script>','#ffffff;display:none']) {
+    const bad=structuredClone(board);bad.groups[2].links.at(-1)[field]=value;assert.equal((await call('/api/board','PUT',bad,true)).status,400);
+   }
+  });
   await t.test('legacy cards retain their white or chocolate appearance',()=>{
    const legacy=structuredClone(board);
    for(const card of legacy.groups.flatMap(g=>g.links))delete card.color;
-   legacy.groups[0].links[0].featured=true;legacy.groups[0].links[1].featured=false;
+   legacy.groups[0].links[0].featured=true;legacy.groups[1].links[0].featured=false;
    const migrated=validateBoard(legacy);
-   assert.equal(migrated.groups[0].links[0].color,'chocolate');assert.equal(migrated.groups[0].links[1].color,'white');
+   assert.equal(migrated.groups[0].links[0].color,'chocolate');assert.equal(migrated.groups[1].links[0].color,'white');
    assert.match(renderGroups(legacy),/card color-chocolate/);
   });
   await t.test('script URLs, credential URLs and invalid structures are rejected',async()=>{
@@ -75,7 +89,7 @@ test('hub authentication, persistence, safe links and concurrent edits',async t=
   await t.test('saved changes survive a runtime restart and render without JavaScript',async()=>{
    await mf.dispose();mf=new Miniflare(convertV4MiniflareOptions(opts));
    const saved=await(await call('/api/board')).json();assert.equal(saved.revision,board.revision);assert.deepEqual(saved.groups,board.groups);
-   const html=await(await call('/')).text();assert.match(html,new RegExp(board.groups[0].links[0].description));assert.doesNotMatch(html,/The Bar Monday Board/);
+   const page=await call('/');const html=await page.text();const nonce=html.match(/id="card-styles" nonce="([^"]+)"/)[1];assert.ok(page.headers.get('Content-Security-Policy').includes(`'nonce-${nonce}'`));assert.match(html,/--card-bg:#173c42/);assert.match(html,/--card-ink:#faf7f0/);assert.match(html,new RegExp(board.groups[0].links[0].description));assert.doesNotMatch(html,/The Bar Monday Board/);
   });
   await t.test('repeated wrong PINs are limited and logout revokes the session',async()=>{
    for(let i=0;i<5;i++)assert.equal((await call('/api/login','POST',{pin:'000000'},false,'https://hub.test','192.0.2.2')).status,401);

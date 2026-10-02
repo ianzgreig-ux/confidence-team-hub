@@ -10,12 +10,41 @@ export const icons = {
  book:'<path d="M12 5v16M12 5C9 3 6 3 2 4v15c4-1 7-1 10 2 3-3 6-3 10-2V4c-4-1-7-1-10 1Z"/>',
  check:'<rect x="4" y="4" width="16" height="17" rx="2"/><path d="M9 3h6v3H9zM8 13l3 3 5-6"/>'
 };
-export const VERSION = '1.3.0';
+export const VERSION = '1.4.0';
 export const CARD_COLORS = [
-  {id:'white',name:'White'}, {id:'ivory',name:'Ivory'}, {id:'rose',name:'Rose'},
-  {id:'blush',name:'Blush'}, {id:'orange',name:'Orange'}, {id:'chocolate',name:'Chocolate'},
+  {id:'white',name:'White',hex:'#ffffff'}, {id:'ivory',name:'Ivory',hex:'#f7f6f2'}, {id:'rose',name:'Rose',hex:'#c77975'},
+  {id:'blush',name:'Blush',hex:'#d2a1a8'}, {id:'orange',name:'Orange',hex:'#dd7929'}, {id:'chocolate',name:'Chocolate',hex:'#5d3727'},
 ];
-export const cardColor = card => CARD_COLORS.some(c=>c.id===card.color) ? card.color : card.featured ? 'chocolate' : 'white';
+export const cardColor = card => (card.color==='custom'||CARD_COLORS.some(c=>c.id===card.color)) ? card.color : card.featured ? 'chocolate' : 'white';
+export const isHexColor = value => typeof value==='string' && /^#[0-9a-f]{6}$/i.test(value);
+export const cardBackground = card => cardColor(card)==='custom' && isHexColor(card.backgroundColor) ? card.backgroundColor.toLowerCase() : CARD_COLORS.find(c=>c.id===cardColor(card))?.hex||'#ffffff';
+export function cardTextColor(card) {
+  if(isHexColor(card.textColor))return card.textColor.toLowerCase();
+  const color=cardColor(card);
+  if(color==='custom') {
+    const bg=cardBackground(card);
+    const channels=[1,3,5].map(i=>parseInt(bg.slice(i,i+2),16)/255).map(c=>c<=.04045?c/12.92:((c+.055)/1.055)**2.4);
+    const luminance=channels.reduce((sum,c,i)=>sum+c*[.2126,.7152,.0722][i],0);
+    return luminance>.179?'#000000':'#ffffff';
+  }
+  return color==='chocolate'?'#f7f6f2':['rose','orange'].includes(color)?'#2d1b17':'#5d3727';
+}
+export function cardColourCss(card) {
+  const rules=[];
+  if(cardColor(card)==='custom') {
+    const bg=cardBackground(card);rules.push(`--card-bg:${bg}`,`--card-border:${bg}`,'--card-icon-bg:transparent');
+  }
+  if(cardColor(card)==='custom'||isHexColor(card.textColor)) {
+    const ink=cardTextColor(card);for(const name of ['ink','muted','accent'])rules.push(`--card-${name}:${ink}`);
+    rules.push('--card-icon-bg:transparent');
+  }
+  return rules.join(';');
+}
+export function renderBoardStyles(board) {
+  return (board?.groups||[]).flatMap(g=>g.links).filter(c=>/^[a-zA-Z0-9_-]{1,80}$/.test(c.id)).map(card=>{
+    const css=cardColourCss(card);return css?`[data-system="${card.id}"]{${css}}`:'';
+  }).join('\n');
+}
 export const GROUPS = [
   {id:'daily',name:'Daily operations',description:'The working day'},
   {id:'bar',name:'The Confidence Bar',description:'Patients and communication'},
@@ -45,9 +74,13 @@ export function validateBoard(board) {
         url = parsed.href;
       }
       if (!Object.hasOwn(icons,card.icon) || (card.featured !== undefined && typeof card.featured !== 'boolean')) throw new Error('Invalid card appearance.');
-      if (card.color !== undefined && !CARD_COLORS.some(c=>c.id===card.color)) throw new Error('Invalid card colour.');
+      if (card.color !== undefined && card.color!=='custom' && !CARD_COLORS.some(c=>c.id===card.color)) throw new Error('Invalid card colour.');
       const color = cardColor(card);
-      return {id:card.id,name:text(card.name,80,true),description:text(card.description,240),label:text(card.label,32),icon:card.icon,url,color,featured:color==='chocolate'};
+      if(color==='custom'&&!isHexColor(card.backgroundColor))throw new Error('Invalid background colour. Use a six-digit hex code such as #c77975.');
+      if(card.textColor!==undefined&&card.textColor!==null&&!isHexColor(card.textColor))throw new Error('Invalid text colour. Use a six-digit hex code such as #ffffff.');
+      const backgroundColor=color==='custom'?card.backgroundColor.toLowerCase():null;
+      const textColor=isHexColor(card.textColor)?card.textColor.toLowerCase():null;
+      return {id:card.id,name:text(card.name,80,true),description:text(card.description,240),label:text(card.label,32),icon:card.icon,url,color,backgroundColor,textColor,featured:color==='chocolate'};
     })};
   });
   return {version:VERSION,groups};

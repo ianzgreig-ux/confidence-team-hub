@@ -10,6 +10,7 @@
   <title>Confidence Team Hub</title>
   <link rel="icon" type="image/png" href="/assets/confidence-logo.png">
   <link rel="stylesheet" href="styles.css">
+  <!-- CARD-STYLES -->
 </head>
 <body>
   <a class="skip-link" href="#systems">Skip to systems</a>
@@ -42,6 +43,12 @@
       <div class="form-columns"><div><label for="card-section">Group</label><select id="card-section"></select></div><div><label for="card-position">Position in group</label><select id="card-position"></select></div></div>
       <div class="form-columns"><div><label for="card-label">Small label</label><input id="card-label" maxlength="32"></div><div><label for="card-icon">Icon</label><select id="card-icon"></select></div></div>
       <fieldset class="colour-field"><legend>Card colour</legend><div id="card-colors" class="colour-options"></div></fieldset>
+      <div id="custom-background-controls" class="custom-colour-controls" hidden>
+        <label for="card-background">Custom background</label><div class="colour-inputs"><input id="card-background" type="color" value="#c77975" aria-label="Pick a background colour"><input id="card-background-hex" type="text" value="#c77975" pattern="#[0-9a-fA-F]{6}" maxlength="7" required aria-label="Background hex code" spellcheck="false" autocomplete="off"></div>
+      </div>
+      <fieldset class="colour-field"><legend>Text colour</legend><label class="check-label"><input id="card-auto-text" type="checkbox" checked>Automatic text colour</label>
+        <div id="custom-text-controls" class="colour-inputs" hidden><input id="card-text" type="color" value="#5d3727" aria-label="Pick a text colour"><input id="card-text-hex" type="text" value="#5d3727" pattern="#[0-9a-fA-F]{6}" maxlength="7" required aria-label="Text hex code" spellcheck="false" autocomplete="off"></div>
+      </fieldset>
       <div id="card-colour-preview" class="colour-preview color-white" aria-label="Card colour preview"><span class="preview-label">Preview</span><strong id="preview-name"></strong><span id="preview-description"></span></div>
       <p id="card-error" class="form-error" role="alert"></p>
       <div class="dialog-actions"><button id="remove-card" type="button" class="button danger">Remove card</button><span class="spacer"></span><button type="button" class="button subtle" data-close="card-dialog">Cancel</button><button id="save-card" type="submit" class="button primary">Save card</button></div>

@@ -1,5 +1,5 @@
 import seed from '../public/links.json';
-import { renderGroups, validateBoard, VERSION } from '../public/shared.js';
+import { renderGroups, renderBoardStyles, validateBoard, VERSION } from '../public/shared.js';
 
 const COOKIE = '__Host-hub_editor';
 const MAX_BODY = 100_000;
@@ -47,8 +47,11 @@ export default {
         if (!stored.ok) return new Response('The hub is temporarily unavailable. Please refresh shortly.', {status:503});
         const board = await stored.json();
         const asset = await env.ASSETS.fetch(new Request(url.origin + '/index.html'));
-        const html = (await asset.text()).replace(/<!-- BOARD-START -->[\s\S]*?<!-- BOARD-END -->/, () => `<!-- BOARD-START -->${renderGroups(board)}<!-- BOARD-END -->`);
+        const nonce=crypto.randomUUID();
+        const html = (await asset.text()).replace('<!-- CARD-STYLES -->',()=>`<style id="card-styles" nonce="${nonce}">${renderBoardStyles(board)}</style>`).replace(/<!-- BOARD-START -->[\s\S]*?<!-- BOARD-END -->/, () => `<!-- BOARD-START -->${renderGroups(board)}<!-- BOARD-END -->`);
         const headers = new Headers(asset.headers);
+        const policy=headers.get('Content-Security-Policy')||"default-src 'none'; script-src 'self'; connect-src 'self'; style-src 'self'; font-src 'self'; img-src 'self' data:; base-uri 'none'; form-action 'self'; frame-ancestors 'none'";
+        headers.set('Content-Security-Policy',policy.replace(/style-src[^;]*/,`style-src 'self' 'nonce-${nonce}'`));
         headers.set('Cache-Control', 'no-store'); headers.delete('ETag'); headers.delete('Content-Length');
         return new Response(request.method === 'HEAD' ? null : html, {headers});
       }

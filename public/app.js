@@ -1,4 +1,4 @@
-import {renderGroups,validateBoard,GROUPS,icons,CARD_COLORS,cardColor} from './shared.js';
+import {renderGroups,validateBoard,GROUPS,icons,CARD_COLORS,cardColor,isHexColor,cardBackground,cardTextColor,cardColourCss,renderBoardStyles} from './shared.js';
 const $=id=>document.getElementById(id);
 let board=null,editing=false,currentId=null,editRevision=null,saving=false,refreshing=false;
 let editReady=true;
@@ -17,6 +17,7 @@ async function api(path,options={}) {
 function render() {
   if(board) $('board').innerHTML=renderGroups(board,editing);
   $('edit-board').textContent=editing?'Done editing':'Edit board';
+  syncColourStyles();
 }
 async function refresh({initial=false}={}) {
   if(refreshing||saving||$('card-dialog').open||$('remove-dialog').open||$('pin-dialog').open)return;
@@ -50,20 +51,36 @@ $('pin-dialog').addEventListener('close',()=>{$('pin').value='';});
 for(const group of GROUPS){const option=new Option(group.name,group.id);$('card-section').add(option);}
 const iconNames={calendar:'Calendar',sun:'Sun',grid:'Grid',columns:'Board',record:'Patient record',message:'Message',person:'Person',ticket:'Ticket',book:'Training',check:'Checklist'};
 for(const key of Object.keys(icons))$('card-icon').add(new Option(iconNames[key],key));
-for(const color of CARD_COLORS) {
-  const label=document.createElement('label');label.className='colour-choice';
+for(const color of [...CARD_COLORS,{id:'custom',name:'Custom'}]) {
+  const label=document.createElement('label');label.className='colour-choice'+(color.id==='custom'?' custom-choice':'');
   const input=document.createElement('input');input.type='radio';input.name='card-color';input.value=color.id;input.required=true;
   const swatch=document.createElement('span');swatch.className='colour-swatch color-'+color.id;swatch.setAttribute('aria-hidden','true');
   label.append(input,swatch,document.createTextNode(color.name));$('card-colors').append(label);
 }
 const selectedColor=()=>document.querySelector('input[name="card-color"]:checked')?.value||'white';
+function currentCardColours() {
+  return {color:selectedColor(),backgroundColor:selectedColor()==='custom'?$('card-background').value:null,textColor:$('card-auto-text').checked?null:$('card-text').value};
+}
+function syncColourStyles(previewCard) {
+  const styles=$('card-styles');
+  if(styles)styles.textContent=renderBoardStyles(board)+(previewCard?`\n#card-colour-preview{${cardColourCss(previewCard)}}`:'');
+}
 function updateColorPreview() {
+  const custom=selectedColor()==='custom';const manualText=!$('card-auto-text').checked;
+  $('custom-background-controls').hidden=!custom;$('custom-text-controls').hidden=!manualText;
+  for(const id of ['card-background','card-background-hex'])$(id).disabled=saving||!custom;
+  for(const id of ['card-text','card-text-hex'])$(id).disabled=saving||!manualText;
   $('card-colour-preview').className='colour-preview color-'+selectedColor();
   $('preview-name').textContent=$('card-name').value||'Card name';
   $('preview-description').textContent=$('card-description').value||'Your card description';
+  syncColourStyles(currentCardColours());
+}
+for(const [pickerId,hexId] of [['card-background','card-background-hex'],['card-text','card-text-hex']]) {
+  $(pickerId).addEventListener('input',()=>{$(hexId).value=$(pickerId).value;});
+  $(hexId).addEventListener('input',()=>{if(isHexColor($(hexId).value))$(pickerId).value=$(hexId).value.toLowerCase();});
 }
 $('card-form').addEventListener('input',updateColorPreview);
-$('card-colors').addEventListener('change',updateColorPreview);
+$('card-form').addEventListener('change',updateColorPreview);
 function positions(selected) {
   const links=board.groups.find(g=>g.id===$('card-section').value).links.filter(l=>l.id!==currentId);
   $('card-position').replaceChildren(...Array.from({length:links.length+1},(_,i)=>new Option(i===0?'1 · First':`${i+1} · After ${links[i-1].name}`,String(i))));
@@ -79,6 +96,8 @@ function openCard(groupId,id=null) {
   $('card-title').textContent=id?'Edit card':'Add card';$('card-form').reset();$('card-error').textContent='';
   for(const field of ['name','description','url','label','icon'])$('card-'+field).value=card[field]||'';
   for(const input of document.querySelectorAll('input[name="card-color"]'))input.checked=input.value===cardColor(card);
+  $('card-background').value=$('card-background-hex').value=cardBackground(card);
+  $('card-text').value=$('card-text-hex').value=cardTextColor(card);$('card-auto-text').checked=!isHexColor(card.textColor);
   updateColorPreview();$('card-section').value=group.id;
   positions(id?group.links.findIndex(l=>l.id===id):undefined);$('remove-card').hidden=!id;
   $('card-dialog').showModal();$('card-name').focus();
@@ -87,7 +106,7 @@ $('board').addEventListener('click',event=>{
   const button=event.target.closest('button');if(!button)return;
   if(button.dataset.edit)openCard(null,button.dataset.edit);else if(button.dataset.add)openCard(button.dataset.add);
 });
-function setSaving(value){saving=value;for(const element of document.querySelectorAll('dialog button,dialog input,dialog textarea,dialog select'))element.disabled=value;}
+function setSaving(value){saving=value;for(const element of document.querySelectorAll('dialog button,dialog input,dialog textarea,dialog select'))element.disabled=value;if(!value)updateColorPreview();}
 async function save(next,revision) {
   validateBoard(next);
   const result=await api('/api/board',{method:'PUT',body:JSON.stringify({...next,revision})});
@@ -97,7 +116,7 @@ $('card-form').addEventListener('submit',async event=>{
   event.preventDefault();if(saving)return;$('card-error').textContent='';
   const next=structuredClone(board);
   for(const group of next.groups)group.links=group.links.filter(l=>l.id!==currentId);
-  const card={id:currentId||crypto.randomUUID(),name:$('card-name').value,description:$('card-description').value,url:$('card-url').value.trim()||null,label:$('card-label').value,icon:$('card-icon').value,color:selectedColor(),featured:selectedColor()==='chocolate'};
+  const card={id:currentId||crypto.randomUUID(),name:$('card-name').value,description:$('card-description').value,url:$('card-url').value.trim()||null,label:$('card-label').value,icon:$('card-icon').value,...currentCardColours(),featured:selectedColor()==='chocolate'};
   const group=next.groups.find(g=>g.id===$('card-section').value);
   group.links.splice(Number($('card-position').value),0,card);setSaving(true);
   try{await save(next,editRevision);$('card-dialog').close();status('Card saved for everyone.');}
