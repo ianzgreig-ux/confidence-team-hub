@@ -1,35 +1,92 @@
 {
-  "version": "1.0.0",
+  "version": "1.1.0",
   "groups": [
     {
       "name": "Daily operations",
       "description": "The working day",
       "links": [
-        {"id": "schedule", "name": "Office Schedule", "description": "Confidence Schedule and SmartSch office coverage.", "label": "Schedule", "icon": "calendar", "url": "https://confidence.iangreig.workers.dev/", "featured": true},
-        {"id": "huddle", "name": "Huddle Board", "description": "Daily priorities, team updates and the morning huddle.", "label": "Monday", "icon": "sun", "url": "https://theconfidenceteam.monday.com/boards/18015562582/views/228790742", "featured": true},
-        {"id": "quickbase", "name": "Quickbase", "description": "Open the team's Quickbase app.", "label": "Operations", "icon": "grid", "url": "https://runenergy-8182.quickbase.com/nav/app/bprjch4wx/action/appoverview?from=myqb"},
-        {"id": "monday", "name": "Monday.com", "description": "Team workspaces, tasks and shared boards.", "label": "Workspace", "icon": "columns", "url": "https://theconfidenceteam.monday.com/"}
-      ]
+        {
+          "id": "schedule",
+          "name": "Office Schedule",
+          "description": "Confidence Schedule and SmartSch office coverage.",
+          "label": "Schedule",
+          "icon": "calendar",
+          "url": "https://confidence.iangreig.workers.dev/",
+          "featured": true
+        },
+        {
+          "id": "huddle",
+          "name": "Huddle Board",
+          "description": "Daily priorities, team updates and the morning huddle.",
+          "label": "Monday",
+          "icon": "sun",
+          "url": "https://theconfidenceteam.monday.com/boards/18015562582/views/228790742",
+          "featured": true
+        },
+        {
+          "id": "ar",
+          "name": "Aesthetic Record",
+          "description": "Appointments, patient records and treatment notes.",
+          "label": "Patient care",
+          "icon": "record",
+          "url": "https://app.aestheticrecord.com/"
+        }
+      ],
+      "id": "daily"
     },
     {
       "name": "The Confidence Bar",
       "description": "Patients and communication",
       "links": [
-        {"id": "ar", "name": "Aesthetic Record", "description": "Appointments, patient records and treatment notes.", "label": "Patient care", "icon": "record", "url": "https://app.aestheticrecord.com/"},
-        {"id": "weave", "name": "Weave", "description": "Patient messages, calls and communication.", "label": "Communication", "icon": "message", "url": "https://app.getweave.com/portal/login"},
-        {"id": "patients", "name": "New Patient Follow-up", "description": "Prepare and manage patient follow-up emails.", "label": "Patient follow-up", "icon": "person", "url": "https://confidence-patient-follow-up.iangreig.workers.dev/"},
-        {"id": "bar-board", "name": "The Bar Monday Board", "description": "The Confidence Bar's team board.", "label": "Monday", "icon": "columns", "url": null}
-      ]
+        {
+          "id": "weave",
+          "name": "Weave",
+          "description": "Patient messages, calls and communication.",
+          "label": "Communication",
+          "icon": "message",
+          "url": "https://app.getweave.com/portal/login"
+        },
+        {
+          "id": "patients",
+          "name": "New Patient Follow-up",
+          "description": "Prepare and manage patient follow-up emails.",
+          "label": "Patient follow-up",
+          "icon": "person",
+          "url": "https://confidence-patient-follow-up.iangreig.workers.dev/"
+        }
+      ],
+      "id": "bar"
     },
     {
       "name": "The Confidence Lab",
       "description": "Training and events",
       "links": [
-        {"id": "events", "name": "Lab Events", "description": "Find events, view guests and prepare follow-up emails.", "label": "Events", "icon": "ticket", "url": "https://conffidencelab.iangreig.workers.dev/"},
-        {"id": "training", "name": "Lab Training", "description": "The Confidence Lab internal training system.", "label": "Training", "icon": "book", "url": null},
-        {"id": "attendees", "name": "Attendee Sign-in", "description": "Open the training attendee sign-in system.", "label": "Attendance", "icon": "check", "url": null},
-        {"id": "lab-board", "name": "The Lab Monday Board", "description": "The Confidence Lab's team board.", "label": "Monday", "icon": "columns", "url": null}
-      ]
+        {
+          "id": "events",
+          "name": "Lab Events",
+          "description": "Find events, view guests and prepare follow-up emails.",
+          "label": "Events",
+          "icon": "ticket",
+          "url": "https://conffidencelab.iangreig.workers.dev/"
+        },
+        {
+          "id": "training",
+          "name": "Lab Training",
+          "description": "The Confidence Lab internal training system.",
+          "label": "Quickbase",
+          "icon": "book",
+          "url": "https://runenergy-8182.quickbase.com/nav/app/bprjch4wx/action/appoverview?from=myqb"
+        },
+        {
+          "id": "attendees",
+          "name": "Attendee Sign-in",
+          "description": "Open the training attendee sign-in system.",
+          "label": "Attendance",
+          "icon": "check",
+          "url": null
+        }
+      ],
+      "id": "lab"
     }
   ]
 }

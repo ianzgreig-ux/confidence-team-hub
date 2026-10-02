@@ -1,6 +1,11 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "confidence-team-hub",
+  "main": "src/worker.js",
   "compatibility_date": "2026-10-02",
-  "assets": { "directory": "./dist" }
+  "workers_dev": true,
+  "keep_vars": true,
+  "assets": { "directory": "./dist", "binding": "ASSETS", "run_worker_first": ["/", "/index.html", "/api/*"] },
+  "durable_objects": { "bindings": [{ "name": "HUB_STORE", "class_name": "HubStore" }] },
+  "migrations": [{ "tag": "hub-v1", "new_sqlite_classes": ["HubStore"] }]
 }

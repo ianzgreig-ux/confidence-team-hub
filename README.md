@@ -1,35 +1,42 @@
 # Confidence Team Hub
 
-A simple responsive launch page for The Confidence Bar and The Confidence Lab. Each configured system opens in a new tab. No logins, credentials or patient records are stored in this hub.
+A responsive staff launch page for The Confidence Bar and The Confidence Lab. Version 1.1.0 adds PIN-protected live card editing. Each configured system opens in a new tab.
 
-## Update links
+## Use the live editor
 
-Edit `public/links.json`, then run `npm run build`. To add another system, copy a link entry into the appropriate group. Null URLs produce a clearly labelled, non-clickable card until a link is supplied.
+Select **Edit board**, enter the editor PIN, then choose **Add card** in a section or **Edit card** on an existing card. You can change its name, description, website, label, icon, highlight, section and position. A blank website keeps the card visible as “Link to be added.” Removal requires confirmation. Select **Done editing** to lock the editor.
 
-The Bar Monday board, Lab Monday board, Lab internal training and attendee sign-in still need their exact URLs. The Events URL preserves the existing `conffidencelab` spelling supplied by Ian.
+Saves are shared with everyone. Open pages refresh on returning to the tab and every minute, or immediately with **Refresh board**. Concurrent edits are checked so an older form cannot overwrite someone else's newer save.
 
-## Cloudflare Worker, Git integration
+## One-time PIN setup
 
-1. In GitHub, create a private repository under `ianzgreig-ux` named `confidence-team-hub`. Initialize it with a README if you want GitHub to show the Add file menu immediately.
-2. Extract the supplied project zip. In the repository, choose **Add file > Upload files**. Upload the extracted files and folders, not the zip and not an extra enclosing folder. `package.json` and `wrangler.jsonc` must appear at the repository root. Commit to `main`.
-3. In Cloudflare, open **Workers & Pages > Create application > Import a repository** (or **Continue with GitHub**, depending on the dashboard).
-4. Choose the existing GitHub account and `confidence-team-hub` repository. If it is missing, use **Manage GitHub access** and add this specific repository to the existing Cloudflare installation.
-5. Set the Worker/project name to `confidence-team-hub`, production branch to `main`, build command to `npm run build`, deploy command to `npx wrangler deploy`, and root directory to `/`.
-6. Select **Save and Deploy**. Wait for the build to succeed, then open the `workers.dev` URL Cloudflare shows. Confirm the hub loads and open the Schedule and Huddle Board buttons.
+In Cloudflare, open **Workers & Pages → confidence-team-hub → Settings → Variables and Secrets → Add**. Select **Secret**, use the name `HUB_ADMIN_PIN`, and enter your chosen 4–12 digit PIN as the value. Save and deploy the change. Do not put the PIN in GitHub, source files or build variables.
 
-Future changes committed to `main` trigger a build and deployment automatically. No secrets, database or bindings are required. This is a new Worker, separate from the existing schedule, events and patient apps.
+Viewing the hub works without this secret. Editing stays locked until it is configured. To change the PIN, update the same secret and deploy; existing editor sessions will be invalidated. Sessions also expire after eight hours or when **Done editing** is selected. Incorrect attempts are limited on the server.
 
-For an authenticated local Cloudflare CLI, `npm run deploy` builds and publishes. Confirm the active account before deployment.
+## Cloudflare and GitHub
 
-## Privacy
+The GitHub repository is `ianzgreig-ux/confidence-team-hub`. Cloudflare's connected Worker deploys commits to `main` automatically. Keep these build settings:
 
-The hub itself contains only system names and URLs. Each destination retains its existing login and access rules. `noindex` discourages search indexing but is not access control. The site makes no external requests until someone opens a link.
+- Build command: `npm run build`
+- Deploy command: `npx wrangler deploy`
+- Project root: `/`
+- Worker name: `confidence-team-hub`
 
-## Link provenance
+Wrangler creates the `HUB_STORE` Durable Object binding and its SQLite-backed storage using the migration in `wrangler.jsonc`. There is no separate database to create. The secret must be added in the Worker's runtime settings, as described above.
 
-- Huddle, Schedule, Events, Patient Follow-up and Quickbase: supplied by Ian on 2 October 2026.
-- Monday workspace: the workspace domain of the supplied Huddle Board URL.
-- Aesthetic Record: https://app.aestheticrecord.com/ (official login).
-- Weave: https://app.getweave.com/portal/login (official portal login).
+Live card changes are stored in Cloudflare. GitHub contains the application code and initial cards, not a commit for each live edit. Deploying new code preserves the saved board. `public/links.json` seeds a brand-new board only; edit an existing board through the live editor.
 
-Version 1.0.0.
+## Development and checks
+
+Use Node.js 22 or newer. Run `npm ci`, `npm run build`, `npm run check`, then `npm test`. Integration tests cover four-digit PIN login, unauthorized writes, cross-origin requests, add/edit/move/remove, concurrent saves, safe links, persistence across runtime restarts, rate limiting, logout and secret rotation. They use an isolated temporary store and a randomly generated test PIN.
+
+`npm run dev` starts the local Worker. For local editor development only, use an ignored `.dev.vars` file containing `HUB_ADMIN_PIN`; never commit that file. Production editor sessions use a Secure, HttpOnly cookie. `npm run deploy` builds and deploys using an already authenticated Cloudflare CLI; confirm the account first.
+
+## Content and access
+
+The hub stores system names and URLs, not patient records. Linked systems retain their own login rules. The PIN controls editing the hub, not access to those systems or visibility of the hub. `noindex` discourages indexing but does not restrict viewing.
+
+The layout follows Ian's marked screenshot: Aesthetic Record is in Daily operations, the three extra Monday cards are removed, and Lab Training uses Quickbase. Attendee Sign-in still needs its URL. The Events URL intentionally preserves the supplied `conffidencelab` spelling.
+
+Links were supplied by Ian on 2 October 2026, except the official Aesthetic Record and Weave login addresses.

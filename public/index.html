@@ -21,9 +21,31 @@
   </header>
   <main id="systems">
     <div class="page-heading"><div><p class="eyebrow">YOUR DAILY WORKSPACE</p><h1>Team hub<span>.</span></h1></div><p class="intro">All your systems, in one place.<br>Choose a system to open it in a new tab.</p></div>
-    <!-- SYSTEMS -->
+    <div class="board-tools"><p id="board-status" role="status" aria-live="polite"></p><div><button id="refresh-board" class="button subtle" hidden>Refresh board</button><button id="edit-board" class="button" hidden>Edit board</button></div></div>
+    <div id="board"><!-- BOARD-START --><!-- SYSTEMS --><!-- BOARD-END --></div>
     <noscript><p class="note">All links work without JavaScript.</p></noscript>
-    <footer><span>The Confidence Bar <span class="footer-divider" aria-hidden="true">/</span> The Confidence Lab</span><span>Team Hub <span class="version">v1.0.0</span></span></footer>
+    <footer><span>The Confidence Bar <span class="footer-divider" aria-hidden="true">/</span> The Confidence Lab</span><span>Team Hub <span class="version">v{{VERSION}}</span></span></footer>
   </main>
+  <dialog id="pin-dialog" aria-labelledby="pin-title">
+    <form id="pin-form"><h2 id="pin-title">Edit board</h2><p>Enter the editor PIN to manage cards.</p>
+      <label for="pin">Editor PIN</label><input id="pin" name="pin" type="password" inputmode="numeric" pattern="[0-9]{4,12}" minlength="4" maxlength="12" autocomplete="off" required>
+      <p id="pin-error" class="form-error" role="alert"></p>
+      <div class="dialog-actions"><button type="button" class="button subtle" data-close="pin-dialog">Cancel</button><button id="unlock" class="button primary" type="submit">Unlock editing</button></div>
+    </form>
+  </dialog>
+  <dialog id="card-dialog" aria-labelledby="card-title">
+    <form id="card-form"><h2 id="card-title">Edit card</h2>
+      <label for="card-name">Card name</label><input id="card-name" maxlength="80" required>
+      <label for="card-description">Description</label><textarea id="card-description" maxlength="240" rows="2"></textarea>
+      <label for="card-url">Website link</label><input id="card-url" type="url" maxlength="2000" placeholder="https://"><small>Leave blank to show “Link to be added”.</small>
+      <div class="form-columns"><div><label for="card-section">Section</label><select id="card-section"></select></div><div><label for="card-position">Position in section</label><select id="card-position"></select></div></div>
+      <div class="form-columns"><div><label for="card-label">Small label</label><input id="card-label" maxlength="32"></div><div><label for="card-icon">Icon</label><select id="card-icon"></select></div></div>
+      <label class="check-label"><input id="card-featured" type="checkbox"> Use a dark card</label>
+      <p id="card-error" class="form-error" role="alert"></p>
+      <div class="dialog-actions"><button id="remove-card" type="button" class="button danger">Remove card</button><span class="spacer"></span><button type="button" class="button subtle" data-close="card-dialog">Cancel</button><button id="save-card" type="submit" class="button primary">Save card</button></div>
+    </form>
+  </dialog>
+  <dialog id="remove-dialog" aria-labelledby="remove-title"><h2 id="remove-title">Remove this card?</h2><p id="remove-message"></p><p>This only removes the shortcut from the hub.</p><p id="remove-error" class="form-error" role="alert"></p><div class="dialog-actions"><button class="button subtle" data-close="remove-dialog">Keep card</button><button id="confirm-remove" class="button danger">Remove card</button></div></dialog>
+  <script type="module" src="/app.js"></script>
 </body>
 </html>

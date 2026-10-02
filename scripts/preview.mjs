@@ -1,14 +1,9 @@
-import http from 'node:http';
-import { readFile } from 'node:fs/promises';
-const args = process.argv.slice(2);
-const portIndex = args.indexOf('--port');
-const port = Number(portIndex >= 0 ? args[portIndex + 1] : process.env.PORT || 4173);
-const files = new Map([['/', ['index.html', 'text/html; charset=utf-8']], ['/index.html', ['index.html', 'text/html; charset=utf-8']], ['/styles.css', ['styles.css', 'text/css; charset=utf-8']]]);
-http.createServer(async (req, res) => {
-  const entry = files.get(new URL(req.url, 'http://localhost').pathname);
-  if (!entry) { res.writeHead(404); res.end('Not found'); return; }
-  try {
-    const body = await readFile(new URL('../dist/' + entry[0], import.meta.url));
-    res.writeHead(200, {'Content-Type': entry[1]}); res.end(body);
-  } catch { res.writeHead(500); res.end('Run npm run build first.'); }
-}).listen(port, '0.0.0.0', () => console.log('Hub preview on port ' + port));
+import {spawn} from 'node:child_process';
+import {mkdirSync} from 'node:fs';
+mkdirSync('.sites-runtime',{recursive:true});
+const input=process.argv.slice(2);
+const portIndex=input.indexOf('--port');
+const args=portIndex<0?[]:['--port',input[portIndex+1]];
+const child=spawn(process.execPath,['node_modules/wrangler/bin/wrangler.js','dev','--ip','0.0.0.0',...args],{stdio:'inherit',env:{...process.env,WRANGLER_SEND_METRICS:'false',WRANGLER_LOG_PATH:process.cwd()+'/.sites-runtime/wrangler.log'}});
+for(const signal of ['SIGTERM','SIGINT'])process.on(signal,()=>child.kill(signal));
+child.on('exit',code=>process.exit(code??1));
