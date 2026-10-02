@@ -1,4 +1,4 @@
-import {renderGroups,validateBoard,GROUPS,icons} from './shared.js';
+import {renderGroups,validateBoard,GROUPS,icons,CARD_COLORS,cardColor} from './shared.js';
 const $=id=>document.getElementById(id);
 let board=null,editing=false,currentId=null,editRevision=null,saving=false,refreshing=false;
 let editReady=true;
@@ -50,9 +50,23 @@ $('pin-dialog').addEventListener('close',()=>{$('pin').value='';});
 for(const group of GROUPS){const option=new Option(group.name,group.id);$('card-section').add(option);}
 const iconNames={calendar:'Calendar',sun:'Sun',grid:'Grid',columns:'Board',record:'Patient record',message:'Message',person:'Person',ticket:'Ticket',book:'Training',check:'Checklist'};
 for(const key of Object.keys(icons))$('card-icon').add(new Option(iconNames[key],key));
+for(const color of CARD_COLORS) {
+  const label=document.createElement('label');label.className='colour-choice';
+  const input=document.createElement('input');input.type='radio';input.name='card-color';input.value=color.id;input.required=true;
+  const swatch=document.createElement('span');swatch.className='colour-swatch color-'+color.id;swatch.setAttribute('aria-hidden','true');
+  label.append(input,swatch,document.createTextNode(color.name));$('card-colors').append(label);
+}
+const selectedColor=()=>document.querySelector('input[name="card-color"]:checked')?.value||'white';
+function updateColorPreview() {
+  $('card-colour-preview').className='colour-preview color-'+selectedColor();
+  $('preview-name').textContent=$('card-name').value||'Card name';
+  $('preview-description').textContent=$('card-description').value||'Your card description';
+}
+$('card-form').addEventListener('input',updateColorPreview);
+$('card-colors').addEventListener('change',updateColorPreview);
 function positions(selected) {
   const links=board.groups.find(g=>g.id===$('card-section').value).links.filter(l=>l.id!==currentId);
-  $('card-position').replaceChildren(...Array.from({length:links.length+1},(_,i)=>new Option(String(i+1),String(i))));
+  $('card-position').replaceChildren(...Array.from({length:links.length+1},(_,i)=>new Option(i===0?'1 · First':`${i+1} · After ${links[i-1].name}`,String(i))));
   $('card-position').value=String(selected??links.length);
 }
 $('card-section').addEventListener('change',()=>positions());
@@ -64,7 +78,8 @@ function openCard(groupId,id=null) {
   currentId=id;editRevision=board.revision;
   $('card-title').textContent=id?'Edit card':'Add card';$('card-form').reset();$('card-error').textContent='';
   for(const field of ['name','description','url','label','icon'])$('card-'+field).value=card[field]||'';
-  $('card-featured').checked=!!card.featured;$('card-section').value=group.id;
+  for(const input of document.querySelectorAll('input[name="card-color"]'))input.checked=input.value===cardColor(card);
+  updateColorPreview();$('card-section').value=group.id;
   positions(id?group.links.findIndex(l=>l.id===id):undefined);$('remove-card').hidden=!id;
   $('card-dialog').showModal();$('card-name').focus();
 }
@@ -82,7 +97,7 @@ $('card-form').addEventListener('submit',async event=>{
   event.preventDefault();if(saving)return;$('card-error').textContent='';
   const next=structuredClone(board);
   for(const group of next.groups)group.links=group.links.filter(l=>l.id!==currentId);
-  const card={id:currentId||crypto.randomUUID(),name:$('card-name').value,description:$('card-description').value,url:$('card-url').value.trim()||null,label:$('card-label').value,icon:$('card-icon').value,featured:$('card-featured').checked};
+  const card={id:currentId||crypto.randomUUID(),name:$('card-name').value,description:$('card-description').value,url:$('card-url').value.trim()||null,label:$('card-label').value,icon:$('card-icon').value,color:selectedColor(),featured:selectedColor()==='chocolate'};
   const group=next.groups.find(g=>g.id===$('card-section').value);
   group.links.splice(Number($('card-position').value),0,card);setSaving(true);
   try{await save(next,editRevision);$('card-dialog').close();status('Card saved for everyone.');}

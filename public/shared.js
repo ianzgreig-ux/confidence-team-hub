@@ -10,7 +10,12 @@ export const icons = {
  book:'<path d="M12 5v16M12 5C9 3 6 3 2 4v15c4-1 7-1 10 2 3-3 6-3 10-2V4c-4-1-7-1-10 1Z"/>',
  check:'<rect x="4" y="4" width="16" height="17" rx="2"/><path d="M9 3h6v3H9zM8 13l3 3 5-6"/>'
 };
-export const VERSION = '1.2.0';
+export const VERSION = '1.3.0';
+export const CARD_COLORS = [
+  {id:'white',name:'White'}, {id:'ivory',name:'Ivory'}, {id:'rose',name:'Rose'},
+  {id:'blush',name:'Blush'}, {id:'orange',name:'Orange'}, {id:'chocolate',name:'Chocolate'},
+];
+export const cardColor = card => CARD_COLORS.some(c=>c.id===card.color) ? card.color : card.featured ? 'chocolate' : 'white';
 export const GROUPS = [
   {id:'daily',name:'Daily operations',description:'The working day'},
   {id:'bar',name:'The Confidence Bar',description:'Patients and communication'},
@@ -40,7 +45,9 @@ export function validateBoard(board) {
         url = parsed.href;
       }
       if (!Object.hasOwn(icons,card.icon) || (card.featured !== undefined && typeof card.featured !== 'boolean')) throw new Error('Invalid card appearance.');
-      return {id:card.id,name:text(card.name,80,true),description:text(card.description,240),label:text(card.label,32),icon:card.icon,url,featured:!!card.featured};
+      if (card.color !== undefined && !CARD_COLORS.some(c=>c.id===card.color)) throw new Error('Invalid card colour.');
+      const color = cardColor(card);
+      return {id:card.id,name:text(card.name,80,true),description:text(card.description,240),label:text(card.label,32),icon:card.icon,url,color,featured:color==='chocolate'};
     })};
   });
   return {version:VERSION,groups};
@@ -49,6 +56,6 @@ export function renderGroups(board, editing=false) {
   return board.groups.map(group => `<section class="system-group" aria-labelledby="group-${escape(group.id)}"><div class="section-heading"><div><h2 id="group-${escape(group.id)}">${escape(group.name)}</h2><p>${escape(group.description)}</p></div>${editing?`<button class="button small" data-add="${escape(group.id)}">Add card</button>`:''}</div><div class="cards">${group.links.map(card => {
     const tag=card.url?'a':'article';
     const attrs=card.url?`href="${escape(card.url)}" target="_blank" rel="noopener noreferrer" aria-label="${escape(card.name)}, opens in a new tab"`:'';
-    return `<div class="card-shell"><${tag} class="card${card.featured?' featured':''}${card.url?'':' pending'}" ${attrs} data-system="${escape(card.id)}"><div class="card-top"><span class="icon" aria-hidden="true"><svg viewBox="0 0 24 24">${icons[card.icon]||icons.grid}</svg></span><span class="card-label">${escape(card.label)}</span></div><h3>${escape(card.name)}</h3><p>${escape(card.description)}</p><span class="card-action">${card.url?'Open system':'Link to be added'}</span></${tag}>${editing?`<button class="button card-edit" data-edit="${escape(card.id)}" aria-label="Edit ${escape(card.name)}">Edit card</button>`:''}</div>`;
+    return `<div class="card-shell"><${tag} class="card color-${cardColor(card)}${card.url?'':' pending'}" ${attrs} data-system="${escape(card.id)}"><div class="card-top"><span class="icon" aria-hidden="true"><svg viewBox="0 0 24 24">${icons[card.icon]||icons.grid}</svg></span><span class="card-label">${escape(card.label)}</span></div><h3>${escape(card.name)}</h3><p>${escape(card.description)}</p><span class="card-action">${card.url?'Open system':'Link to be added'}</span></${tag}>${editing?`<button class="button card-edit" data-edit="${escape(card.id)}" aria-label="Edit ${escape(card.name)}">Edit card</button>`:''}</div>`;
   }).join('') || '<p class="note">No cards in this section.</p>'}</div></section>`).join('\n');
 }

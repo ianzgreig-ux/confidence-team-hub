@@ -5,7 +5,7 @@ import {build} from 'esbuild';
 import {mkdtemp,readFile,rm} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
-import {validateBoard,renderGroups} from '../public/shared.js';
+import {validateBoard,renderGroups,CARD_COLORS} from '../public/shared.js';
 
 test('hub authentication, persistence, safe links and concurrent edits',async t=>{
  const tmp=await mkdtemp(join(tmpdir(),'confidence-hub-test-'));
@@ -42,6 +42,28 @@ test('hub authentication, persistence, safe links and concurrent edits',async t=
    const statuses=await Promise.all([call('/api/board','PUT',a,true),call('/api/board','PUT',b,true)]);assert.deepEqual(statuses.map(r=>r.status).sort(),[200,409]);
    board=await (await call('/api/board')).json();board.groups[2].links=board.groups[2].links.filter(l=>l.id!=='test-link');
    res=await call('/api/board','PUT',board,true);assert.equal(res.status,200);board=await res.json();
+  });
+  await t.test('brand colours persist when cards move between groups and positions',async()=>{
+   const beforeIds=board.groups.flatMap(g=>g.links.map(l=>l.id)).sort();
+   const next=structuredClone(board);
+   next.groups.flatMap(g=>g.links).forEach((card,i)=>{card.color=CARD_COLORS[i%CARD_COLORS.length].id;});
+   const moved=next.groups[0].links.splice(1,1)[0];next.groups[1].links.splice(1,0,moved);
+   const res=await call('/api/board','PUT',next,true);assert.equal(res.status,200);board=await res.json();
+   assert.equal(board.groups[1].links[1].id,moved.id);
+   assert.equal(board.groups[1].links[1].color,moved.color);
+   assert.deepEqual(board.groups.flatMap(g=>g.links.map(l=>l.id)).sort(),beforeIds);
+   assert.deepEqual(new Set(board.groups.flatMap(g=>g.links.map(l=>l.color))),new Set(CARD_COLORS.map(c=>c.id)));
+   for(const card of board.groups.flatMap(g=>g.links))assert.equal(card.featured,card.color==='chocolate');
+   const bad=structuredClone(board);bad.groups[0].links[0].color='rose\" onclick=alert(1)';
+   assert.equal((await call('/api/board','PUT',bad,true)).status,400);
+  });
+  await t.test('legacy cards retain their white or chocolate appearance',()=>{
+   const legacy=structuredClone(board);
+   for(const card of legacy.groups.flatMap(g=>g.links))delete card.color;
+   legacy.groups[0].links[0].featured=true;legacy.groups[0].links[1].featured=false;
+   const migrated=validateBoard(legacy);
+   assert.equal(migrated.groups[0].links[0].color,'chocolate');assert.equal(migrated.groups[0].links[1].color,'white');
+   assert.match(renderGroups(legacy),/card color-chocolate/);
   });
   await t.test('script URLs, credential URLs and invalid structures are rejected',async()=>{
    for(const url of ['javascript:alert(1)','data:text/html,test','https://user:pass@example.com']){

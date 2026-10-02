@@ -38,9 +38,11 @@
       <label for="card-name">Card name</label><input id="card-name" maxlength="80" required>
       <label for="card-description">Description</label><textarea id="card-description" maxlength="240" rows="2"></textarea>
       <label for="card-url">Website link</label><input id="card-url" type="url" maxlength="2000" placeholder="https://"><small>Leave blank to show “Link to be added”.</small>
-      <div class="form-columns"><div><label for="card-section">Section</label><select id="card-section"></select></div><div><label for="card-position">Position in section</label><select id="card-position"></select></div></div>
+      <p class="placement-help">To move this card, choose its group and position below.</p>
+      <div class="form-columns"><div><label for="card-section">Group</label><select id="card-section"></select></div><div><label for="card-position">Position in group</label><select id="card-position"></select></div></div>
       <div class="form-columns"><div><label for="card-label">Small label</label><input id="card-label" maxlength="32"></div><div><label for="card-icon">Icon</label><select id="card-icon"></select></div></div>
-      <label class="check-label"><input id="card-featured" type="checkbox"> Use a dark card</label>
+      <fieldset class="colour-field"><legend>Card colour</legend><div id="card-colors" class="colour-options"></div></fieldset>
+      <div id="card-colour-preview" class="colour-preview color-white" aria-label="Card colour preview"><span class="preview-label">Preview</span><strong id="preview-name"></strong><span id="preview-description"></span></div>
       <p id="card-error" class="form-error" role="alert"></p>
       <div class="dialog-actions"><button id="remove-card" type="button" class="button danger">Remove card</button><span class="spacer"></span><button type="button" class="button subtle" data-close="card-dialog">Cancel</button><button id="save-card" type="submit" class="button primary">Save card</button></div>
     </form>

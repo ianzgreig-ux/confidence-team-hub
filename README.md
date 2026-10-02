@@ -1,10 +1,10 @@
 # Confidence Team Hub
 
-A responsive staff launch page for The Confidence Bar and The Confidence Lab. Version 1.2.0 applies the supplied Confidence brand guide and logo, with PIN-protected live card editing. Each configured system opens in a new tab.
+A responsive staff launch page for The Confidence Bar and The Confidence Lab. Version 1.3.0 adds six brand card colours and clearer group and position controls to the PIN-protected live editor. Each configured system opens in a new tab.
 
 ## Use the live editor
 
-Select **Edit board**, enter the editor PIN, then choose **Add card** in a section or **Edit card** on an existing card. You can change its name, description, website, label, icon, highlight, section and position. A blank website keeps the card visible as “Link to be added.” Removal requires confirmation. Select **Done editing** to lock the editor.
+Select **Edit board**, enter the editor PIN, then choose **Add card** in a section or **Edit card** on an existing card. You can change its name, description, website, label, icon, colour, group and position. Choose White, Ivory, Rose, Blush, Orange or Chocolate and see an immediate preview. Use **Group** to move a card between Daily operations, The Confidence Bar and The Confidence Lab, and **Position in group** to set its order. A blank website keeps the card visible as “Link to be added.” Removal requires confirmation. Select **Done editing** to lock the editor.
 
 Saves are shared with everyone. Open pages refresh on returning to the tab and every minute, or immediately with **Refresh board**. Concurrent edits are checked so an older form cannot overwrite someone else's newer save.
 
@@ -46,3 +46,5 @@ Links were supplied by Ian on 2 October 2026, except the official Aesthetic Reco
 The supplied logo is used unchanged in the header and browser tab. Brand colours are rose `#c77975`, ivory `#f7f6f2`, orange `#dd7929`, blush `#d2a1a8`, chocolate `#5d3727` and white. The hub uses ivory, rose and chocolate as its main palette.
 
 Typography follows the guide with serif headings, uppercase labels and buttons, and light sans-serif body copy. CSS prefers Canela and Avenir when installed, then falls back to Georgia and system sans-serif fonts. The PDF does not supply licensed webfont files. Add appropriately licensed webfonts if exact typography is needed on every device.
+
+Existing white and dark cards keep their appearance when upgrading. Their colour is normalised on the next save, without resetting the stored board.
