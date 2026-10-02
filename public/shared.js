@@ -10,7 +10,7 @@ export const icons = {
  book:'<path d="M12 5v16M12 5C9 3 6 3 2 4v15c4-1 7-1 10 2 3-3 6-3 10-2V4c-4-1-7-1-10 1Z"/>',
  check:'<rect x="4" y="4" width="16" height="17" rx="2"/><path d="M9 3h6v3H9zM8 13l3 3 5-6"/>'
 };
-export const VERSION = '1.1.0';
+export const VERSION = '1.2.0';
 export const GROUPS = [
   {id:'daily',name:'Daily operations',description:'The working day'},
   {id:'bar',name:'The Confidence Bar',description:'Patients and communication'},

@@ -1,6 +1,6 @@
 # Confidence Team Hub
 
-A responsive staff launch page for The Confidence Bar and The Confidence Lab. Version 1.1.0 adds PIN-protected live card editing. Each configured system opens in a new tab.
+A responsive staff launch page for The Confidence Bar and The Confidence Lab. Version 1.2.0 applies the supplied Confidence brand guide and logo, with PIN-protected live card editing. Each configured system opens in a new tab.
 
 ## Use the live editor
 
@@ -40,3 +40,9 @@ The hub stores system names and URLs, not patient records. Linked systems retain
 The layout follows Ian's marked screenshot: Aesthetic Record is in Daily operations, the three extra Monday cards are removed, and Lab Training uses Quickbase. Attendee Sign-in still needs its URL. The Events URL intentionally preserves the supplied `conffidencelab` spelling.
 
 Links were supplied by Ian on 2 October 2026, except the official Aesthetic Record and Weave login addresses.
+
+## Brand styling
+
+The supplied logo is used unchanged in the header and browser tab. Brand colours are rose `#c77975`, ivory `#f7f6f2`, orange `#dd7929`, blush `#d2a1a8`, chocolate `#5d3727` and white. The hub uses ivory, rose and chocolate as its main palette.
+
+Typography follows the guide with serif headings, uppercase labels and buttons, and light sans-serif body copy. CSS prefers Canela and Avenir when installed, then falls back to Georgia and system sans-serif fonts. The PDF does not supply licensed webfont files. Add appropriately licensed webfonts if exact typography is needed on every device.
